@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import ToastContainer from '../components/ToastContainer';
 
 const navItems = [
   { label: 'Dashboard', path: '/', roles: ['ADMIN', 'SALES', 'WAREHOUSE', 'ACCOUNTS'] },
@@ -12,6 +14,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -20,11 +23,18 @@ export default function DashboardLayout() {
 
   const visibleNav = navItems.filter((item) => user && item.roles.includes(user.role));
 
+  const section = location.pathname === '/' ? 'Dashboard' : location.pathname.split('/')[1];
+  const pageTitle = section.charAt(0).toUpperCase() + section.slice(1);
+
   return (
     <div className="flex h-screen bg-gray-50">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <Link to="/" className="text-lg font-bold text-gray-900">ERP CRM</Link>
+          <Link to="/" className="text-lg font-bold text-gray-900" onClick={() => setSidebarOpen(false)}>ERP CRM</Link>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {visibleNav.map((item) => {
@@ -33,6 +43,7 @@ export default function DashboardLayout() {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setSidebarOpen(false)}
                 className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   active
                     ? 'bg-blue-50 text-blue-700'
@@ -58,16 +69,22 @@ export default function DashboardLayout() {
           </button>
         </div>
       </aside>
+
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6">
-          <h2 className="text-lg font-semibold text-gray-900 capitalize">
-            {location.pathname === '/' ? 'Dashboard' : location.pathname.split('/')[1]}
-          </h2>
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:px-6 gap-3">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-600 hover:text-gray-900 p-1">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h2 className="text-lg font-semibold text-gray-900">{pageTitle}</h2>
         </header>
         <div className="flex-1 overflow-auto">
           <Outlet />
         </div>
       </main>
+
+      <ToastContainer />
     </div>
   );
 }

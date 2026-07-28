@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { useAuthStore } from '../../stores/authStore';
+import { useToastStore } from '../../stores/toastStore';
 import type { Challan } from '../../types';
 
 export default function ChallanDetailPage() {
@@ -10,9 +11,8 @@ export default function ChallanDetailPage() {
   const { user } = useAuthStore();
   const [challan, setChallan] = useState<Challan | null>(null);
   const [loading, setLoading] = useState(true);
+  const { addToast } = useToastStore();
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionError, setActionError] = useState('');
-  const [confirmMsg, setConfirmMsg] = useState('');
 
   useEffect(() => {
     api.get(`/challans/${id}`).then((res) => {
@@ -24,26 +24,24 @@ export default function ChallanDetailPage() {
   const handleConfirm = async () => {
     if (!confirm('Confirm this challan? Stock will be deducted.')) return;
     setActionLoading(true);
-    setActionError('');
     try {
       const res = await api.patch(`/challans/${id}/confirm`);
       setChallan(res.data);
-      setConfirmMsg('Challan confirmed successfully');
+      addToast('Challan confirmed', 'success');
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Confirmation failed');
+      addToast(err.response?.data?.message || 'Confirmation failed', 'error');
     } finally { setActionLoading(false) }
   };
 
   const handleCancel = async () => {
     if (!confirm('Cancel this challan?')) return;
     setActionLoading(true);
-    setActionError('');
     try {
       const res = await api.patch(`/challans/${id}/cancel`);
       setChallan(res.data);
-      setConfirmMsg('Challan cancelled');
+      addToast('Challan cancelled', 'success');
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Cancellation failed');
+      addToast(err.response?.data?.message || 'Cancellation failed', 'error');
     } finally { setActionLoading(false) }
   };
 
@@ -52,9 +50,6 @@ export default function ChallanDetailPage() {
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
-      {confirmMsg && <div className="bg-green-50 text-green-700 text-sm rounded px-3 py-2">{confirmMsg}</div>}
-      {actionError && <div className="bg-red-50 text-red-700 text-sm rounded px-3 py-2">{actionError}</div>}
-
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Challan {challan.challanNumber}</h2>

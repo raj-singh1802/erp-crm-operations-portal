@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/login/LoginPage';
+import DashboardPage from './pages/dashboard/DashboardPage';
 import CustomerListPage from './pages/customers/CustomerListPage';
 import CustomerFormPage from './pages/customers/CustomerFormPage';
 import CustomerDetailPage from './pages/customers/CustomerDetailPage';
@@ -12,15 +13,6 @@ import ChallanBuilderPage from './pages/challans/ChallanBuilderPage';
 import ChallanListPage from './pages/challans/ChallanListPage';
 import ChallanDetailPage from './pages/challans/ChallanDetailPage';
 
-function Dashboard() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p className="text-gray-500 mt-2">Welcome to the ERP CRM Portal.</p>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <BrowserRouter>
@@ -28,7 +20,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<DashboardPage />} />
             <Route path="/customers" element={<CustomerListPage />} />
             <Route path="/customers/new" element={<CustomerFormPage />} />
             <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
