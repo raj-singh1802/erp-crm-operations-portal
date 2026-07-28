@@ -21,14 +21,18 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<DashboardPage />} />
-            <Route path="/customers" element={<CustomerListPage />} />
-            <Route path="/customers/new" element={<CustomerFormPage />} />
-            <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
-            <Route path="/customers/:id" element={<CustomerDetailPage />} />
-            <Route path="/products" element={<ProductListPage />} />
-            <Route path="/products/new" element={<ProductFormPage />} />
-            <Route path="/products/:id/edit" element={<ProductFormPage />} />
-            <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'SALES', 'ACCOUNTS']} />}>
+              <Route path="/customers" element={<CustomerListPage />} />
+              <Route path="/customers/new" element={<CustomerFormPage />} />
+              <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+              <Route path="/customers/:id" element={<CustomerDetailPage />} />
+            </Route>
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'WAREHOUSE']} />}>
+              <Route path="/products" element={<ProductListPage />} />
+              <Route path="/products/new" element={<ProductFormPage />} />
+              <Route path="/products/:id/edit" element={<ProductFormPage />} />
+              <Route path="/products/:id" element={<ProductDetailPage />} />
+            </Route>
             <Route path="/challans" element={<ChallanListPage />} />
             <Route path="/challans/new" element={<ChallanBuilderPage />} />
             <Route path="/challans/:id" element={<ChallanDetailPage />} />

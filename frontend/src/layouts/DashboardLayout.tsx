@@ -5,8 +5,8 @@ import ToastContainer from '../components/ToastContainer';
 
 const navItems = [
   { label: 'Dashboard', path: '/', roles: ['ADMIN', 'SALES', 'WAREHOUSE', 'ACCOUNTS'] },
-  { label: 'Customers', path: '/customers', roles: ['ADMIN', 'SALES', 'WAREHOUSE', 'ACCOUNTS'] },
-  { label: 'Products', path: '/products', roles: ['ADMIN', 'SALES', 'WAREHOUSE', 'ACCOUNTS'] },
+  { label: 'Customers', path: '/customers', roles: ['ADMIN', 'SALES', 'ACCOUNTS'] },
+  { label: 'Products', path: '/products', roles: ['ADMIN', 'WAREHOUSE'] },
   { label: 'Challans', path: '/challans', roles: ['ADMIN', 'SALES', 'WAREHOUSE', 'ACCOUNTS'] },
 ];
 
