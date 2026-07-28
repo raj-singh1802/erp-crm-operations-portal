@@ -17,6 +17,7 @@ export default function ProductDetailPage() {
   const [adjReason, setAdjReason] = useState('');
   const [adjLoading, setAdjLoading] = useState(false);
   const [adjError, setAdjError] = useState('');
+  const [imageUploading, setImageUploading] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -31,6 +32,21 @@ export default function ProductDetailPage() {
   };
 
   useEffect(() => { fetchData() }, [id]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await api.post(`/products/${id}/image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setProduct(res.data);
+    } catch { /* 403 handled by backend */ }
+    finally { setImageUploading(false) }
+  };
 
   const handleAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +90,20 @@ export default function ProductDetailPage() {
           </span>
         </div>
         <div><span className="text-gray-500">Location:</span> <span className="text-gray-900">{product.warehouseLocation || '-'}</span></div>
-        <div><span className="text-gray-500">Image:</span> <span className="text-gray-900">{product.imageUrl || '-'}</span></div>
+        <div>
+          <span className="text-gray-500">Image:</span>
+          {product.imageUrl ? (
+            <img src={product.imageUrl} alt={product.name} className="mt-1 h-24 w-24 object-cover rounded border" />
+          ) : (
+            <span className="text-gray-500 ml-1 text-sm">No image</span>
+          )}
+          {['ADMIN', 'WAREHOUSE'].includes(user?.role || '') && (
+            <label className={`ml-2 text-blue-600 hover:underline text-sm cursor-pointer ${imageUploading ? 'opacity-50' : ''}`}>
+              {imageUploading ? 'Uploading...' : 'Upload'}
+              <input type="file" accept="image/*" onChange={handleImageUpload} disabled={imageUploading} className="hidden" />
+            </label>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-6">

@@ -1,8 +1,11 @@
 import {
   Controller, Get, Post, Patch, Body, Param, Query,
   UseGuards, ParseIntPipe, HttpCode, HttpStatus,
+  UseInterceptors, UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
+import { ProductsImageService } from './products-image.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
@@ -16,7 +19,10 @@ import { Role } from '@prisma/client';
 @Controller('products')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProductsController {
-  constructor(private productsService: ProductsService) {}
+  constructor(
+    private productsService: ProductsService,
+    private productsImageService: ProductsImageService,
+  ) {}
 
   @Post()
   @Roles(Role.ADMIN)
@@ -51,6 +57,18 @@ export class ProductsController {
   @Roles(Role.ADMIN, Role.WAREHOUSE, Role.ACCOUNTS)
   getStockMovements(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.getStockMovements(id);
+  }
+
+  @Post(':id/image')
+  @Roles(Role.ADMIN, Role.WAREHOUSE)
+  @UseInterceptors(FileInterceptor('image'))
+  @HttpCode(HttpStatus.OK)
+  async uploadImage(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const imageUrl = await this.productsImageService.upload(file);
+    return this.productsService.update(id, { imageUrl } as any, 'ADMIN' as any);
   }
 
   @Post(':id/stock-movements')
