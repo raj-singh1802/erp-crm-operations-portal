@@ -32,25 +32,23 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
-    const users = await this.prisma.user.findMany({
-      where: { refreshTokenHash: { not: null } },
-    });
+    const underscoreIndex = refreshToken.indexOf('_');
+    if (underscoreIndex === -1) throw new UnauthorizedException('Invalid refresh token');
 
-    let matchedUser: (typeof users)[0] | null = null;
-    for (const user of users) {
-      const valid = await bcrypt.compare(refreshToken, user.refreshTokenHash!);
-      if (valid) {
-        matchedUser = user;
-        break;
-      }
-    }
+    const userIdEncoded = refreshToken.slice(0, underscoreIndex);
+    const userId = parseInt(Buffer.from(userIdEncoded, 'base64').toString('utf-8'), 10);
+    if (isNaN(userId)) throw new UnauthorizedException('Invalid refresh token');
 
-    if (!matchedUser) throw new UnauthorizedException('Invalid refresh token');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.refreshTokenHash) throw new UnauthorizedException('Invalid refresh token');
 
-    const tokens = await this.generateTokens(matchedUser.id, matchedUser.email, matchedUser.role);
+    const valid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+    if (!valid) throw new UnauthorizedException('Invalid refresh token');
+
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
     const refreshHash = await bcrypt.hash(tokens.refreshToken, 10);
     await this.prisma.user.update({
-      where: { id: matchedUser.id },
+      where: { id: user.id },
       data: { refreshTokenHash: refreshHash },
     });
 
@@ -75,13 +73,15 @@ export class AuthService {
       expiresIn: (process.env.JWT_ACCESS_EXPIRY || '15m') as any,
     });
 
-    const refreshToken = await this.generateRandomToken();
+    const refreshToken = await this.generateRandomToken(userId);
 
     return { accessToken, refreshToken };
   }
 
-  private async generateRandomToken(): Promise<string> {
+  private async generateRandomToken(userId: number): Promise<string> {
     const crypto = await import('node:crypto');
-    return crypto.randomBytes(48).toString('hex');
+    const randomHex = crypto.randomBytes(48).toString('hex');
+    const userIdEncoded = Buffer.from(String(userId)).toString('base64');
+    return `${userIdEncoded}_${randomHex}`;
   }
 }

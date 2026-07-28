@@ -19,7 +19,7 @@ export class ProductsController {
   constructor(private productsService: ProductsService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.WAREHOUSE)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
