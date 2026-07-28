@@ -133,7 +133,7 @@ export class ChallansService {
       });
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to confirm challan due to a transaction conflict');
+      throw error;
     }
 
     return this.findOne(id);
