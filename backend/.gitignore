@@ -1,6 +1,11 @@
 node_modules
 .env
+.env.local
+.env.production
+dist
 /generated/prisma
+uploads/
+*.tsbuildinfo
 .agents/
 .claude/
 .windsurf/
