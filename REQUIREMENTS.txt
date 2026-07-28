@@ -1,0 +1,65 @@
+ERP CRM Operations Portal — Requirements & Setup
+==================================================
+
+PREREQUISITES
+-------------
+- Node.js >= 18.x
+- npm >= 9.x
+- PostgreSQL >= 14.x (local or remote, e.g. Neon)
+- Git
+
+QUICK START
+-----------
+
+1. Clone the repository:
+   git clone <repo-url>
+   cd ERP_CRM_Assignment
+
+2. Backend setup:
+   cd backend
+   npm install
+   cp .env.example .env   # edit DATABASE_URL and JWT secrets
+   npx prisma migrate dev
+   npx prisma db seed
+   npm run start:dev       # runs on http://localhost:3000
+
+3. Frontend setup:
+   cd frontend
+   npm install
+   cp .env.example .env    # VITE_API_BASE_URL already set to localhost:3000
+   npm run dev             # runs on http://localhost:5173
+
+ENVIRONMENT VARIABLES
+---------------------
+
+Backend (.env):
+  DATABASE_URL          PostgreSQL connection string
+  JWT_ACCESS_SECRET     Secret for signing access tokens
+  JWT_REFRESH_SECRET    Secret for signing refresh tokens
+  JWT_ACCESS_EXPIRY     Access token expiry (default: 15m)
+  JWT_REFRESH_EXPIRY    Refresh token expiry (default: 7d)
+  CORS_ORIGIN           Frontend origin (default: http://localhost:5173)
+
+Frontend (.env):
+  VITE_API_BASE_URL     Backend API URL (default: http://localhost:3000)
+
+TEST CREDENTIALS (after seed)
+------------------------------
+  Admin     admin@test.com     password123
+  Sales     sales@test.com     password123
+  Warehouse warehouse@test.com password123
+  Accounts  accounts@test.com  password123
+
+AVAILABLE SCRIPTS
+-----------------
+
+Backend:
+  npm run start:dev    Start in watch mode
+  npm run build        Build for production
+  npm run start:prod   Start production build
+  npx prisma studio    Open Prisma DB browser
+
+Frontend:
+  npm run dev          Start dev server with HMR
+  npm run build        Build for production
+  npm run preview      Preview production build
