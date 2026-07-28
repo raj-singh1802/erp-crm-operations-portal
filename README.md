@@ -2,6 +2,11 @@
 
 A full-stack internal operations portal for a wholesale/distribution company. Built with NestJS, PostgreSQL, Prisma, React, and Tailwind CSS.
 
+**Live URLs:**
+- **Frontend:** [https://erp-crm-operations-portal.vercel.app](https://erp-crm-operations-portal.vercel.app)
+- **Backend API:** [https://erp-crm-api.onrender.com](https://erp-crm-api.onrender.com)
+- **Database:** Neon (PostgreSQL 16, pooled connection)
+
 ## Table of Contents
 
 - [Tech Stack](#tech-stack)
@@ -160,7 +165,8 @@ Open http://localhost:5173 and log in with any test credential.
 
 | Variable | Description | Default |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:postgres@localhost:5432/erp_crm` |
+| `DATABASE_URL` | PostgreSQL connection string (pooled for queries) | `postgresql://postgres:postgres@localhost:5432/erp_crm` |
+| `DIRECT_URL` | PostgreSQL direct connection (unpooled, for migrations) | Same as DATABASE_URL without `-pooler` |
 | `JWT_ACCESS_SECRET` | Secret for signing access tokens | (set in .env.example) |
 | `JWT_REFRESH_SECRET` | Secret for signing refresh tokens | (set in .env.example) |
 | `JWT_ACCESS_EXPIRY` | Access token TTL | `15m` |
@@ -194,7 +200,7 @@ Open http://localhost:5173 and log in with any test credential.
 | **Challans** | Create (Draft) | ✓ | ✓ | — | — |
 | | Read | ✓ | ✓ | ✓ | ✓ |
 | | Confirm | ✓ | ✓ | — | — |
-| | Cancel (Draft only) | ✓ | ✓ | — | — |
+| | Cancel | ✓ | ✓ | — | — |
 | | Download PDF | ✓ | ✓ | — | — |
 | | Delete | ✓ | — | — | — |
 
@@ -202,12 +208,12 @@ Open http://localhost:5173 and log in with any test credential.
 
 All seeded users share the password: **password123**
 
-| Role | Email |
-|---|---|
-| Admin | admin@test.com |
-| Sales | sales@test.com |
-| Warehouse | warehouse@test.com |
-| Accounts | accounts@test.com |
+| Role | Email | Password |
+|---|---|---|---|
+| Admin | admin@test.com | password123 |
+| Sales | sales@test.com | password123 |
+| Warehouse | warehouse@test.com | password123 |
+| Accounts | accounts@test.com | password123 |
 
 ## API Endpoints
 
@@ -319,32 +325,34 @@ Uses [pdfkit](https://github.com/foliojs/pdfkit) — no headless browser require
 
 Follow the [Getting Started](#getting-started) section. The assignment accepts local setup + screen recording as an alternative to live deployment.
 
-### Option B: Deploy to Free Tier
+### Option B: Deploy to Free Tier (Reference)
+
+The live deployment was done as follows:
 
 1. **Database (Neon):**
    - Create a Neon project
-   - Copy the connection string (use `psql` mode for Prisma)
+   - Copy both the pooled connection string (`DATABASE_URL`) and the direct connection string (`DIRECT_URL`)
    - Run: `npx prisma migrate deploy` and `npx prisma db seed`
 
 2. **Backend (Render):**
-   - Create a new Web Service, connect GitHub repo
+   - Create a new Web Service, connect GitHub repo, root directory `backend/`
    - Build command: `npm install && npx prisma generate && npm run build`
    - Start command: `npx prisma migrate deploy && node dist/main`
-   - Set environment variables: `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`
+   - Environment variables: `DATABASE_URL` (pooled), `DIRECT_URL` (direct, for migrations), `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`
 
 3. **Frontend (Vercel):**
    - Import GitHub repo, set root to `frontend/`
-   - Build command: `npm ci && npm run build`
-   - Set environment variable: `VITE_API_BASE_URL` = Render backend URL
+   - Framework preset: Vite
+   - Environment variable: `VITE_API_BASE_URL` = Render backend URL
    - Deploy
 
 ## Submission Checklist
 
 - [x] GitHub repo link
-- [ ] Live frontend URL (optional — skip if using local setup)
-- [ ] Live backend URL (optional — skip if using local setup)
+- [x] Live frontend URL: https://erp-crm-operations-portal.vercel.app
+- [x] Live backend URL: https://erp-crm-api.onrender.com
 - [x] Test credentials for all 4 roles (see above)
 - [x] Postman collection (`postman/ERP_CRM_Portal.postman_collection.json`)
 - [x] README with architecture explanation and assumptions
 - [x] Known limitations documented
-- [ ] Screen recording (walk through: login as each role → create customer → add product → build + confirm a challan → observe stock decrease → attempt over-quantity challan → show the rejection)
+- [ ] Screen recording — Loom URL to be added
