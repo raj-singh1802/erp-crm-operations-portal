@@ -73,7 +73,9 @@ export class ChallansService {
       await this.prisma.$transaction(async (tx) => {
         const insufficient: { productId: number; available: number; requested: number }[] = [];
 
-        for (const item of challan.items) {
+        const sortedItems = [...challan.items].sort((a, b) => a.productId - b.productId);
+
+        for (const item of sortedItems) {
           await tx.$executeRaw`SELECT "currentStock" FROM "products" WHERE "id" = ${item.productId} FOR UPDATE`;
 
           const product = await tx.product.findUnique({ where: { id: item.productId } });
