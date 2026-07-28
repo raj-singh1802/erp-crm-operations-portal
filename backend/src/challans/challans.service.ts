@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateChallanDto } from './dto/create-challan.dto';
 import { QueryChallanDto } from './dto/query-challan.dto';
 import { ChallanStatus, Prisma } from '@prisma/client';
+import PDFDocument from 'pdfkit';
 
 @Injectable()
 export class ChallansService {
@@ -149,6 +150,99 @@ export class ChallansService {
     return this.prisma.challan.update({
       where: { id },
       data: { status: ChallanStatus.CANCELLED },
+    });
+  }
+
+  async generatePdf(id: number): Promise<Buffer> {
+    const challan = await this.prisma.challan.findUnique({
+      where: { id },
+      include: {
+        customer: true,
+        createdByUser: { select: { id: true, name: true } },
+        items: {
+          include: { product: { select: { id: true, sku: true } } },
+        },
+      },
+    });
+    if (!challan) throw new NotFoundException('Challan not found');
+
+    const doc = new PDFDocument({ margin: 50 });
+    const chunks: Buffer[] = [];
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+
+    return new Promise<Buffer>((resolve, reject) => {
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const pageWidth = doc.page.width - 100;
+      const col1 = 50;
+      const col2 = 200;
+      const col3 = 310;
+      const col4 = 400;
+      const col5 = 480;
+
+      doc.fontSize(18).font('Helvetica-Bold').text('ERP CRM Portal', col1, 50);
+      doc.fontSize(10).font('Helvetica').text('Sales Challan Invoice', col1, 75);
+      doc.moveTo(col1, 95).lineTo(pageWidth + 50, 95).stroke('#ccc');
+
+      let y = 115;
+      doc.fontSize(11).font('Helvetica-Bold').text(`Challan #: `, col1, y);
+      doc.font('Helvetica').text(challan.challanNumber, col1 + 80, y);
+      y += 18;
+      doc.font('Helvetica-Bold').text('Status: ', col1, y);
+      doc.font('Helvetica').text(challan.status, col1 + 50, y);
+      y += 18;
+      doc.font('Helvetica-Bold').text('Date: ', col1, y);
+      doc.font('Helvetica').text(new Date(challan.createdAt).toLocaleDateString(), col1 + 40, y);
+
+      y += 30;
+      doc.font('Helvetica-Bold').text('Customer Details', col1, y);
+      y += 18;
+      doc.font('Helvetica').text(`Name: ${challan.customer.name}`, col1, y);
+      y += 15;
+      if (challan.customer.businessName) {
+        doc.text(`Business: ${challan.customer.businessName}`, col1, y);
+        y += 15;
+      }
+      doc.text(`Mobile: ${challan.customer.mobile}`, col1, y);
+      y += 15;
+      doc.text(`Created by: ${challan.createdByUser?.name || 'User'}`, col1, y);
+
+      y += 25;
+      doc.moveTo(col1, y).lineTo(pageWidth + 50, y).stroke('#ccc');
+      y += 10;
+
+      doc.fontSize(10).font('Helvetica-Bold');
+      doc.text('Product', col1, y);
+      doc.text('SKU', col2, y);
+      doc.text('Qty', col3, y);
+      doc.text('Price', col4, y);
+      doc.text('Total', col5, y);
+      y += 5;
+      doc.moveTo(col1, y).lineTo(pageWidth + 50, y).stroke('#ccc');
+      y += 10;
+
+      doc.font('Helvetica').fontSize(10);
+      for (const item of challan.items) {
+        const lineTotal = Number(item.unitPriceSnapshot) * item.quantity;
+        doc.text(item.productNameSnapshot || 'N/A', col1, y, { width: col2 - col1 - 10 });
+        doc.text(item.product?.sku || '-', col2, y);
+        doc.text(String(item.quantity), col3, y);
+        doc.text(`₹${Number(item.unitPriceSnapshot).toFixed(2)}`, col4, y);
+        doc.text(`₹${lineTotal.toFixed(2)}`, col5, y);
+        y += 18;
+      }
+
+      y += 10;
+      doc.moveTo(col1, y).lineTo(pageWidth + 50, y).stroke('#ccc');
+      y += 10;
+      doc.font('Helvetica-Bold').fontSize(11);
+      doc.text(`Total Quantity: ${challan.totalQuantity}`, col1, y);
+      y += 20;
+      doc.font('Helvetica').fontSize(8).fillColor('#999');
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, col1, y);
+
+      doc.end();
     });
   }
 

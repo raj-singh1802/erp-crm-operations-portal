@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Patch, Body, Param, Query,
-  UseGuards, ParseIntPipe, HttpCode, HttpStatus,
+  UseGuards, ParseIntPipe, HttpCode, HttpStatus, Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ChallansService } from './challans.service';
 import { CreateChallanDto } from './dto/create-challan.dto';
 import { QueryChallanDto } from './dto/query-challan.dto';
@@ -45,5 +46,18 @@ export class ChallansController {
   @Roles(Role.ADMIN, Role.SALES)
   cancel(@Param('id', ParseIntPipe) id: number) {
     return this.challansService.cancel(id);
+  }
+
+  @Get(':id/pdf')
+  @Roles(Role.ADMIN, Role.SALES)
+  @HttpCode(HttpStatus.OK)
+  async downloadPdf(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const pdfBuffer = await this.challansService.generatePdf(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="challan-${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.send(pdfBuffer);
   }
 }

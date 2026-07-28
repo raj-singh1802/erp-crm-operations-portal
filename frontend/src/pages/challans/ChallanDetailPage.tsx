@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../api/client';
+import api, { getAccessToken } from '../../api/client';
 import { useAuthStore } from '../../stores/authStore';
 import { useToastStore } from '../../stores/toastStore';
 import type { Challan } from '../../types';
@@ -31,6 +31,22 @@ export default function ChallanDetailPage() {
     } catch (err: any) {
       addToast(err.response?.data?.message || 'Confirmation failed', 'error');
     } finally { setActionLoading(false) }
+  };
+
+  const handleDownloadPdf = () => {
+    const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const token = getAccessToken();
+    fetch(`${base}/challans/${id}/pdf`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `challan-${id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => addToast('Failed to download PDF', 'error'));
   };
 
   const handleCancel = async () => {
@@ -78,6 +94,9 @@ export default function ChallanDetailPage() {
         <div><span className="text-gray-500">Customer:</span> <span className="text-gray-900">{challan.customer?.name || '-'}</span></div>
         <div><span className="text-gray-500">Created by:</span> <span className="text-gray-900">{challan.createdByUser?.name || 'User'}</span></div>
         <div><span className="text-gray-500">Total quantity:</span> <span className="text-gray-900">{challan.totalQuantity}</span></div>
+        <div className="col-span-2">
+          <button onClick={handleDownloadPdf} className="text-blue-600 hover:underline text-sm">Download PDF</button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-6">
