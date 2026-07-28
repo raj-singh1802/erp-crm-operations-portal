@@ -58,7 +58,7 @@ export default function ProductDetailPage() {
     <div className="p-6 max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
-        {['ADMIN'].includes(user?.role || '') && (
+        {['ADMIN', 'WAREHOUSE'].includes(user?.role || '') && (
           <Link to={`/products/${id}/edit`} className="text-blue-600 hover:underline text-sm">Edit</Link>
         )}
       </div>

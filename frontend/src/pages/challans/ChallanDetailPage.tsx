@@ -68,7 +68,7 @@ export default function ChallanDetailPage() {
                   {actionLoading ? 'Processing...' : 'Confirm'}
                 </button>
               )}
-              {['ADMIN'].includes(user?.role || '') && (
+              {['ADMIN', 'SALES'].includes(user?.role || '') && (
                 <button onClick={handleCancel} disabled={actionLoading} className="bg-red-50 text-red-700 px-4 py-2 rounded text-sm font-medium hover:bg-red-100 disabled:opacity-50">
                   Cancel
                 </button>
