@@ -67,7 +67,7 @@ The most critical business logic is the `PATCH /challans/:id/confirm` endpoint. 
 1. **Row-level locking:** Each product row is re-fetched using `findUnique` within the transaction (Prisma uses `SELECT FOR UPDATE` under repeatable-read isolation).
 2. **Sorted by productId:** Items are sorted by `productId` before locking to prevent deadlock when two concurrent confirmations involve overlapping products.
 3. **Stock check before deduction:** Each item's `currentStock >= quantity` is verified. If any item falls short, the entire transaction rolls back and a `400` is returned naming the understocked product(s).
-4. **Atomic snapshot update:** On confirmation, current product name and unit price are written into `ChallanItem.productNameSnapshot` and `ChallanItem.unitPriceSnapshot` (overwriting the draft-time snapshot) so the challan always reflects prices at the moment of sale.
+4. **Snapshot at confirm time:** Product name and unit price are written into `ChallanItem.productNameSnapshot` and `ChallanItem.unitPriceSnapshot` only at confirmation. Draft challans show `N/A` for these fields — the snapshot is taken from current product data at the moment of sale, not at draft creation.
 5. **No partial state:** If any step fails (stock insufficient, DB error), zero stock is deducted and no movement log is written.
 
 ### Frontend Structure
@@ -103,7 +103,7 @@ The frontend mirrors this: `ProtectedRoute` blocks unauthenticated access, then 
 - **Role-Based Access Control:** 4 roles — Admin, Sales, Warehouse, Accounts. Frontend gates UI elements; backend enforces at every endpoint.
 - **Customer CRM:** Full CRUD with pagination, search by name/mobile, filter by status/type. Follow-up notes with timestamps and author tracking.
 - **Product & Inventory:** CRUD with unique SKU enforcement. Stock movement log with atomic IN/OUT adjustments (writes movement + updates stock in one transaction). Low-stock flag computed at query time.
-- **Sales Challans:** Draft → Confirm → Cancel workflow. Auto-generated challan number format `CH-YYYY-XXXXX`. Product snapshots taken at draft time and refreshed at confirm time. Confirmation uses atomic `$transaction` with row-level locks, sorted by productId to prevent deadlocks. Insufficient stock returns a clear 400 naming the short product(s). Only Draft challans can be cancelled.
+- **Sales Challans:** Draft → Confirm → Cancel workflow. Auto-generated challan number format `CH-YYYY-XXXXX`. Product snapshots (name + unit price) are captured only at confirm time — draft challans show placeholder values. Confirmation uses atomic `$transaction` with row-level locks, sorted by productId to prevent deadlocks. Insufficient stock returns a clear 400 naming the short product(s). Only Draft challans can be cancelled.
 - **Frontend:** Responsive admin shell (sidebar with hamburger menu on mobile). Toast notifications for success/error feedback. Dashboard widget showing low-stock and draft challan counts.
 
 ### Bonus (Phase 9)
@@ -190,7 +190,6 @@ Open http://localhost:5173 and log in with any test credential.
 | **Customers** | Create | ✓ | ✓ | — | — |
 | | Read | ✓ | ✓ | ✓ | ✓ |
 | | Update | ✓ | ✓ | — | — |
-| | Delete | ✓ | — | — | — |
 | | Add Follow-up | ✓ | ✓ | — | — |
 | **Products** | Create | ✓ | — | — | — |
 | | Read | ✓ | ✓ | ✓ | ✓ |
@@ -198,20 +197,18 @@ Open http://localhost:5173 and log in with any test credential.
 | | Update (stock fields only) | ✓ | — | ✓ | — |
 | | Adjust Stock | ✓ | — | ✓ | — |
 | | Upload Image | ✓ | — | ✓ | — |
-| | Delete | ✓ | — | — | — |
 | **Challans** | Create (Draft) | ✓ | ✓ | — | — |
 | | Read | ✓ | ✓ | ✓ | ✓ |
 | | Confirm | ✓ | ✓ | — | — |
 | | Cancel | ✓ | ✓ | — | — |
 | | Download PDF | ✓ | ✓ | — | — |
-| | Delete | ✓ | — | — | — |
 
 ## Test Credentials
 
 All seeded users share the password: **password123**
 
 | Role | Email | Password |
-|---|---|---|---|
+|---|---|---|
 | Admin | admin@test.com | password123 |
 | Sales | sales@test.com | password123 |
 | Warehouse | warehouse@test.com | password123 |
@@ -306,7 +303,7 @@ Uses [pdfkit](https://github.com/foliojs/pdfkit) — no headless browser require
 ## Assumptions & Design Decisions
 
 - **Auth token storage:** Access and refresh tokens are stored in JavaScript variables (in-memory), not in `localStorage`. On page refresh, the user must log in again. This is deliberate — in-memory storage is immune to XSS-based token theft at the cost of session persistence. A production version could use httpOnly cookies for the refresh token.
-- **Snapshot timing:** Product name and price are snapshotted into `ChallanItem` at **draft creation** time and **re-snapshotted at confirm time**. This ensures the challan reflects prices at the moment of sale while also showing what was quoted at draft time. The alternative (snapshotting only at draft time) was rejected because a long-lived draft might have stale prices.
+- **Snapshot timing:** Product name and price are snapshotted into `ChallanItem` only at **confirm time**. Draft challans show `N/A` for snapshotted fields because the snapshot is taken from live product data at the moment of sale. This avoids stale-price risk from long-lived drafts. The alternative (snapshotting at draft time) was rejected because a draft created days ago would freeze prices that may no longer reflect current market rates.
 - **Cancellation rule:** Only Draft challans can be cancelled. Confirmed challans cannot be cancelled (no stock reversal). This avoids the complexity of inventory correction flows and matches the requirement ("Draft/Confirmed status" — cancellation of confirmed challans was not explicitly required).
 - **Rate limiting:** Not implemented. Would use `@nestjs/throttler` in production. Out of scope for the 48-hour build.
 - **Refresh token rotation:** On each refresh, a new pair is issued and the old refresh token hash is replaced in the DB. If a compromised token is reused after rotation, it cannot be detected (no token family tracking). Production would include a token family/session table for rotation theft detection.

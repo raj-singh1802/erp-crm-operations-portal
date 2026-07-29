@@ -242,6 +242,17 @@
             "body": { "mode": "raw", "raw": "{\"movementType\":\"IN\",\"quantityChanged\":50,\"reason\":\"Restock from supplier\"}" },
             "url": { "raw": "{{baseUrl}}/products/{{productId}}/stock-movements", "host": ["{{baseUrl}}"], "path": ["products", "{{productId}}", "stock-movements"] }
           }
+        },
+        {
+          "name": "Upload Product Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "formdata", "formdata": [{ "key": "image", "type": "file", "src": "/path/to/sample-image.jpg" }] },
+            "url": { "raw": "{{baseUrl}}/products/{{productId}}/image", "host": ["{{baseUrl}}"], "path": ["products", "{{productId}}", "image"] }
+          }
         }
       ]
     },
@@ -304,6 +315,14 @@
             "method": "PATCH",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": { "raw": "{{baseUrl}}/challans/{{challanId}}/cancel", "host": ["{{baseUrl}}"], "path": ["challans", "{{challanId}}", "cancel"] }
+          }
+        },
+        {
+          "name": "Download Challan PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/challans/{{challanId}}/pdf", "host": ["{{baseUrl}}"], "path": ["challans", "{{challanId}}", "pdf"] }
           }
         }
       ]
