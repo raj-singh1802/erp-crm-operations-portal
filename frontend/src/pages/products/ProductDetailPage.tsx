@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { useAuthStore } from '../../stores/authStore';
+import { useToastStore } from '../../stores/toastStore';
 import type { Product, StockMovement } from '../../types';
 
 export default function ProductDetailPage() {
@@ -18,6 +19,7 @@ export default function ProductDetailPage() {
   const [adjLoading, setAdjLoading] = useState(false);
   const [adjError, setAdjError] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
+  const { addToast } = useToastStore();
 
   const fetchData = async () => {
     try {
@@ -44,8 +46,10 @@ export default function ProductDetailPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setProduct(res.data);
-    } catch { /* 403 handled by backend */ }
-    finally { setImageUploading(false) }
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      addToast('Image upload failed', 'error');
+    } finally { setImageUploading(false) }
   };
 
   const handleAdjust = async (e: React.FormEvent) => {

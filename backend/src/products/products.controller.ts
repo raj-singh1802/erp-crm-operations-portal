@@ -66,9 +66,10 @@ export class ProductsController {
   async uploadImage(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: any,
   ) {
     const imageUrl = await this.productsImageService.upload(file);
-    return this.productsService.update(id, { imageUrl } as any, 'ADMIN' as any);
+    return this.productsService.update(id, { imageUrl } as any, user.role);
   }
 
   @Post(':id/stock-movements')

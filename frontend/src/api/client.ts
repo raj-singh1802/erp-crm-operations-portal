@@ -49,9 +49,11 @@ api.interceptors.response.use(
         refreshToken = res.data.refreshToken;
         original.headers.Authorization = `Bearer ${accessToken}`;
         return api(original);
-      } catch {
+      } catch (err) {
+        console.error('Token refresh failed, redirecting to login:', err);
         clearTokens();
         if (onLogout) onLogout();
+        alert('Your session has expired. Please sign in again.');
         window.location.href = '/login';
       }
     }

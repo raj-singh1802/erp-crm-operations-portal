@@ -10,7 +10,7 @@ import { Prisma } from '@prisma/client';
 export class CustomersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateCustomerDto, userId: number) {
+  async create(dto: CreateCustomerDto) {
     const existing = await this.prisma.customer.findFirst({
       where: { mobile: dto.mobile },
     });

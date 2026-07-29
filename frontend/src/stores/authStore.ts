@@ -23,7 +23,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     try {
       await api.post('/auth/logout');
-    } catch {
+    } catch (err) {
+      console.error('Logout API call failed:', err);
     } finally {
       clearTokens();
       set({ user: null, isAuthenticated: false });

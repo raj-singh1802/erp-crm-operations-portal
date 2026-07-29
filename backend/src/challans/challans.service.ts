@@ -70,13 +70,12 @@ export class ChallansService {
       throw new BadRequestException('Only draft challans can be confirmed');
     }
 
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        const insufficient: { productId: number; available: number; requested: number }[] = [];
+    await this.prisma.$transaction(async (tx) => {
+      const insufficient: { productId: number; available: number; requested: number }[] = [];
 
-        const sortedItems = [...challan.items].sort((a, b) => a.productId - b.productId);
+      const sortedItems = [...challan.items].sort((a, b) => a.productId - b.productId);
 
-        for (const item of sortedItems) {
+      for (const item of sortedItems) {
           await tx.$executeRaw`SELECT "currentStock" FROM "products" WHERE "id" = ${item.productId} FOR UPDATE`;
 
           const product = await tx.product.findUnique({ where: { id: item.productId } });
@@ -131,11 +130,7 @@ export class ChallansService {
           where: { id },
           data: { status: ChallanStatus.CONFIRMED },
         });
-      });
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw error;
-    }
+    });
 
     return this.findOne(id);
   }

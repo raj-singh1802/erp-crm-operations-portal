@@ -10,3 +10,9 @@ uploads/
 .claude/
 .windsurf/
 skills-lock.json
+prisma/*.js
+prisma/*.d.ts
+prisma/*.js.map
+test/*.js
+test/*.d.ts
+test/*.js.map

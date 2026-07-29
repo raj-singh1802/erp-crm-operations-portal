@@ -21,8 +21,8 @@ export class CustomersController {
   @Post()
   @Roles(Role.ADMIN, Role.SALES)
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateCustomerDto, @CurrentUser() user: any) {
-    return this.customersService.create(dto, user.id);
+  create(@Body() dto: CreateCustomerDto) {
+    return this.customersService.create(dto);
   }
 
   @Get()

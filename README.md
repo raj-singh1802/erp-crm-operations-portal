@@ -316,6 +316,7 @@ Uses [pdfkit](https://github.com/foliojs/pdfkit) — no headless browser require
 - **Refresh token theft detection:** Rotation is implemented but there is no reuse detection (no family/session table). If an attacker steals a token and uses it after the legitimate user refreshes, the theft goes undetected.
 - **No pagination on stock movements:** `GET /products/:id/stock-movements` returns all records unfiltered.
 - **Image upload validation:** The current implementation does not validate file type, size, or sanitise filenames beyond stripping the extension from the original name.
+- **Customer records have no `createdBy`:** Unlike Challan (createdByUser) and StockMovement (createdByUser), Customer records do not track who created them. The schema has no `createdBy` column. A future improvement would add the column and migration for audit-trail consistency with other modules.
 - **PDF styling:** Basic. Uses pdfkit's built-in Helvetica fonts. In production, embed a custom font and company logo.
 - **Docker image:** The backend image does not run migrations automatically on startup (requires a manual `docker exec` or an init container).
 
