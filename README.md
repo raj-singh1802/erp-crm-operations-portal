@@ -355,4 +355,4 @@ The live deployment was done as follows:
 - [x] Postman collection (`postman/ERP_CRM_Portal.postman_collection.json`)
 - [x] README with architecture explanation and assumptions
 - [x] Known limitations documented
-- [ ] Screen recording — Loom URL to be added
+- [x] Screen recording: https://www.loom.com/share/11cea46c45d74478a4ef191f2cb07a3d
