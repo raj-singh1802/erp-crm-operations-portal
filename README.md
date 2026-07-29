@@ -2,6 +2,8 @@
 
 A full-stack internal operations portal for a wholesale/distribution company. Built with NestJS, PostgreSQL, Prisma, React, and Tailwind CSS.
 
+**GitHub:** [https://github.com/raj-singh1802/erp-crm-operations-portal](https://github.com/raj-singh1802/erp-crm-operations-portal)
+
 **Live URLs:**
 - **Frontend:** [https://erp-crm-operations-portal.vercel.app](https://erp-crm-operations-portal.vercel.app)
 - **Backend API:** [https://erp-crm-api.onrender.com](https://erp-crm-api.onrender.com)
@@ -123,8 +125,8 @@ The frontend mirrors this: `ProtectedRoute` blocks unauthenticated access, then 
 
 ```bash
 # 1. Clone and install
-git clone <repo-url>
-cd erp-crm-portal
+git clone https://github.com/raj-singh1802/erp-crm-operations-portal.git
+cd erp-crm-operations-portal
 
 # Backend
 cd backend
@@ -349,7 +351,7 @@ The live deployment was done as follows:
 
 ## Submission Checklist
 
-- [x] GitHub repo link
+- [x] GitHub repo: https://github.com/raj-singh1802/erp-crm-operations-portal
 - [x] Live frontend URL: https://erp-crm-operations-portal.vercel.app
 - [x] Live backend URL: https://erp-crm-api.onrender.com
 - [x] Test credentials for all 4 roles (see above)
